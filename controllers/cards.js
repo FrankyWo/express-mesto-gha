@@ -7,7 +7,7 @@ const getCards = (req, res) => {
     .find({})
     .then((cards) => res.send(cards))
     .catch(() => res.status(internalServerError).send({
-      message: 'Произошла ошибка на сервере',
+      message: 'На сервере произошла ошибка',
     }));
 };
 
@@ -24,7 +24,7 @@ const createCard = (req, res) => {
         return;
       }
       res.status(internalServerError).send({
-        message: 'Произошла ошибка на сервере',
+        message: 'На сервере произошла ошибка',
       });
     });
 };
@@ -40,7 +40,7 @@ const deleteCard = (req, res) => {
       } else if (err.name === 'CastError') {
         res.status(badRequest).send({ message: 'Ошибка валидации' });
       } else {
-        res.status(internalServerError).send({ message: 'Произошла ошибка на сервере' });
+        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -60,7 +60,7 @@ const setLike = (req, res) => {
       } else if (err.name === 'CastError') {
         res.status(badRequest).send({ message: 'Ошибка валидации' });
       } else {
-        res.status(internalServerError).send({ message: 'Произошла ошибка на сервере' });
+        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -80,7 +80,7 @@ const deleteLike = (req, res) => {
       } else if (err.name === 'CastError') {
         res.status(badRequest).send({ message: 'Ошибка валидации' });
       } else {
-        res.status(internalServerError).send({ message: 'Произошла ошибка на сервере' });
+        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };

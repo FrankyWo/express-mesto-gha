@@ -7,7 +7,7 @@ const getUsers = (req, res) => {
     .find({})
     .then((users) => res.send(users))
     .catch(() => res.status(internalServerError).send({
-      message: 'Произошла ошибка на сервере',
+      message: 'На сервере произошла ошибка',
     }));
 };
 
@@ -22,7 +22,7 @@ const getUserById = (req, res) => {
       } else if (err.name === 'CastError') {
         res.status(badRequest).send({ message: 'Ошибка валидации' });
       } else {
-        res.status(internalServerError).send({ message: 'Произошла ошибка на сервере' });
+        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -39,7 +39,7 @@ const createUser = (req, res) => {
         return;
       }
       res.status(internalServerError).send({
-        message: 'Произошла ошибка на сервере',
+        message: 'На сервере произошла ошибка',
       });
     });
 };
@@ -63,7 +63,7 @@ const updateUser = (req, res) => {
         return;
       }
       res.status(internalServerError).send({
-        message: 'Произошла ошибка на сервере',
+        message: 'На сервере произошла ошибка',
       });
     });
 };
@@ -84,7 +84,7 @@ const updateAvatar = (req, res) => {
         return;
       }
       res.status(internalServerError).send({
-        message: 'Произошла ошибка на сервере',
+        message: 'На сервере произошла ошибка',
       });
     });
 };
