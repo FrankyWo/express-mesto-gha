@@ -1,86 +1,87 @@
 const mongoose = require('mongoose');
 const cardModel = require('../models/card');
-const { badRequest, notFound, internalServerError } = require('../errors/errorStatuses');
+const NotFoundError = require('../errors/NotFoundError');
+const ValidationError = require('../errors/ValidationError');
+const ForbiddenError = require('../errors/ForbiddenError');
+const created = require('../utils/const');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   cardModel
     .find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.status(internalServerError).send({
-      message: 'На сервере произошла ошибка',
-    }));
+    .catch((err) => next(err));
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   cardModel
     .create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.send(card);
+      res.status(created).send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: 'Ошибка валидации' });
-        return;
-      }
-      res.status(internalServerError).send({
-        message: 'На сервере произошла ошибка',
-      });
-    });
-};
-
-const deleteCard = (req, res) => {
-  cardModel
-    .findByIdAndRemove(req.params.cardId)
-    .orFail(() => { throw new Error('Not found'); })
-    .then((card) => res.send(card))
-    .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(notFound).send({ message: 'Карточка с указанным id не найдена' });
-      } else if (err.name === 'CastError') {
-        res.status(badRequest).send({ message: 'Ошибка валидации' });
+        next(new ValidationError('Ошибка валидации'));
       } else {
-        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
 
-const setLike = (req, res) => {
+const deleteCard = (req, res, next) => {
+  cardModel
+    .findById(req.params.cardId)
+    .then((card) => {
+      if (!card) {
+        next(new NotFoundError('Карточка с указанным id не найдена'));
+      } else if (card.owner.toString() !== req.user._id) {
+        next(new ForbiddenError('Попытка удалить чужую карточку'));
+      } else {
+        cardModel.findByIdAndRemove(req.params.cardId)
+          .then((c) => res.send(c));
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Ошибка валидации'));
+      } else {
+        next(err);
+      }
+    });
+};
+
+const setLike = (req, res, next) => {
   cardModel
     .findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => { throw new Error('Not found'); })
+    .orFail(new NotFoundError('Карточка с указанным id не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(notFound).send({ message: 'Карточка с указанным id не найдена' });
-      } else if (err.name === 'CastError') {
-        res.status(badRequest).send({ message: 'Ошибка валидации' });
+      if (err.name === 'CastError') {
+        next(new ValidationError('Ошибка валидации'));
       } else {
-        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
 
-const deleteLike = (req, res) => {
+const deleteLike = (req, res, next) => {
   cardModel
     .findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
       { new: true },
     )
-    .orFail(() => { throw new Error('Not found'); })
+    .orFail(new NotFoundError('Карточка с указанным id не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(notFound).send({ message: 'Карточка с указанным id не найдена' });
-      } else if (err.name === 'CastError') {
-        res.status(badRequest).send({ message: 'Ошибка валидации' });
+      if (err.name === 'CastError') {
+        next(new ValidationError('Ошибка валидации'));
       } else {
-        res.status(internalServerError).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
